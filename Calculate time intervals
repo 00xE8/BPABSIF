@@ -1,0 +1,9 @@
+SELECT [AgentId]
+      ,[ABMStart]
+      ,[ABMEnd]
+      ,[BPMNStart]
+      ,[BPMNEnd]
+      ,[Language]
+      ,[Preference]
+	  ,DATEDIFF(ms,ABMstart,ABMend) as ABMDiff
+  FROM [DissetationData].[dbo].[<<TABLENAMEHERE>>]
