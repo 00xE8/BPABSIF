@@ -1,0 +1,189 @@
+extensions [py table]
+
+
+Globals[KonkaniDelay MalayalamDelay HindiDelay OthersDelay NumberOfPatients NumberOfStaff factor ]
+
+breed [Staff receptionist]
+breed [Patients patient]
+
+Staff-own [
+
+
+]
+
+Patients-own[
+       ;; true or false: has this turtle gotten the message yet?
+  Language
+  velocity
+  age
+  Preference
+  count-down
+  instanceID
+  agentId
+]
+
+to setup
+
+  py:setup py:python
+  clear-all
+
+  py:run "import requests,json,time"
+  set-default-shape Patients "person"
+  set-default-shape Staff "person"
+
+  set factor 1
+
+  set Konkanidelay 150 * factor + random 100 * factor ;; range 150*factor to 250*factor
+  set MalayalamDelay 350 * factor + random 100 * factor  ;; range 350*factor to 450*factor
+  set HindiDelay 450 * factor + random 100 * factor ;; range 450*factor to 550*factor
+  set OthersDelay random 50 * factor ;; range 0*factor to 50*factor
+  set NumberOfPatients 500
+  set NumberOfStaff 500
+
+  create-Patients NumberOfPatients [ ;;Konkani patients
+    set age 18 + random 17 ; range 18 to 35
+    set Language "Konkani"
+    set agentId who
+    set color blue
+    set velocity  1
+    ifelse age > 18 and age < 40[ ;patients age 18 - 39 prefer to use automated desk for assistance
+      set Preference "Robot"
+      set count-down KonkaniDelay
+    ]
+    [
+    set Preference "Human"
+    set count-down KonkaniDelay
+    ] ; 40+ prefer human interaction with interpreter
+
+    setxy random-xcor random-ycor
+  ]
+    create-Patients NumberOfPatients [ ;;Malayalam patients
+    set age 18 + random 17 ; range 18 to 35
+    set Language "Malayalam"
+    set color orange
+    set velocity  1
+    ifelse age > 18 and age < 40[ ;patients age 18 - 39 prefer to use automated desk for assistance
+    set Preference "Robot"
+      set count-down MalayalamDelay
+    ]
+    [
+      set Preference "Human"
+      set count-down MalayalamDelay
+    ] ; 40+ prefer human interaction with interpreter
+
+    setxy random-xcor random-ycor
+  ]
+
+    create-Patients NumberOfPatients [ ;;Malayalam patients
+    set age 18 + random 17 ; range 18 to 35
+    set Language "Hindi"
+    set color yellow
+    set velocity  1
+    ifelse age > 18 and age < 40[ ;patients age 18 - 39 prefer to use automated desk for assistance
+      set Preference "Robot"
+      set count-down HindiDelay
+    ]
+    [
+    set Preference "Human"
+    set count-down HindiDelay
+    ] ; 40+ prefer human interaction with interpreter
+
+    setxy random-xcor random-ycor
+  ]
+
+      create-Patients NumberOfPatients [ ;Other patients
+    set age 18 + random 17 ; range 18 to 35
+    set Language "Other"
+    set color pink
+    set velocity  1
+    ifelse age > 18 and age < 40[ ;patients age 18 - 39 prefer to use automated desk for assistance
+    set Preference "Robot"
+      set count-down OthersDelay
+    ]
+    [
+    set Preference "Human"
+    set count-down OthersDelay
+    ] ; 40+ prefer human interaction with interpreter
+
+    setxy random-xcor random-ycor
+  ]
+
+  create-Staff NumberOfStaff[
+    set color green
+    setxy random-xcor random-ycor
+  ]
+
+  reset-ticks
+end
+
+to go
+clear-output
+  ask Patients [ move ]
+  ask Patients [runProcess]
+  if Count Patients = 0
+  [stop]
+  tick
+
+end
+
+to move  ;; turtle procedure
+  if velocity > 0 [
+  fd random 4
+  rt random 40
+    lt random 40]
+end
+to runProcess
+  carefully[
+    ask other Staff-here with [ count link-neighbors = 0]
+    [
+
+      create-link-with myself ;;Create link with Patient on same patch
+      set color red
+      ask one-of link-neighbors [ ;Set actions to happen to patient
+        set velocity 0 ; stop patient
+
+        let pl (word "r=requests.post('http://localhost:8080/engine-rest/engine/default/process-definition/key/RegisterPatient/start',headers = {'Content-Type': 'application/json'},json={'variables' : {'StartTimestamp':{'value':'" date-and-time "','type':'String'},'Language':{'value':'" Language "','type':'String'},'AgentID':{'value':'" who "','type':'String'},'Preference':{'value':'" preference "','type':'String'}},'businessKey':'" who "'})") ; Start Process
+        ;show pl
+        (py:run pl
+          ;"print(r.text)"
+          "jr = json.loads(r.text)"
+        )
+        loop[
+          set instanceID py:runresult "jr['id']" ;wait for response
+
+          if not empty? instanceId [
+            ;print(instanceID)
+            stop
+
+          ]
+
+        ]
+      ]
+    ;]
+
+      ]
+    if any? link-neighbors[ ; Check if patient linked to staff
+        set count-down count-down - 1
+
+        if count-down <= 0[
+        ;print(agentId)
+        let payload (word "r = requests.post('http://localhost:8080/engine-rest/engine/default/message',headers = {'Content-Type': 'application/json'},json={'messageName': 'Message_1ipk1qp','businessKey': '" who "','processVariables':{'FillTimestamp' : {'value': '" date-and-time "', 'type':'String'}},'resultEnabled' : 'true'})")
+        (py:run payload
+          ;"print(r.text)"
+        )
+        if Language = "Konkani"[
+          set count-down KonkaniDelay]
+        if Language = "Malayalam"[
+          set count-down MalayalamDelay]
+        if Language = "Hindi"[
+          set count-down HindiDelay]
+        if Language = "Others"[
+          set count-down OthersDelay]
+        ask one-of link-neighbors[
+          set color green]
+        die
+      ]
+    ]
+  ]
+  [show error-message]
+end
