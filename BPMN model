@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_124ndsu" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.0.0">
+  <bpmn:message id="Message_0q7btz7" name="Message_1ipk1qp" />
+  <bpmn:collaboration id="Collaboration_0b2u461">
+    <bpmn:participant id="Participant_0uvsvo1" name="Register Patient" processRef="RegisterPatient" />
+  </bpmn:collaboration>
+  <bpmn:process id="RegisterPatient" name="RegisterPatient" isExecutable="true" camunda:modelerTemplate="kpi" camunda:isStartableInTasklist="false">
+    <bpmn:extensionElements>
+      <camunda:properties>
+        <camunda:property name="kpiunit" value="ms" />
+        <camunda:property name="kpi" value="" />
+      </camunda:properties>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_0ul3trs">
+      <bpmn:lane id="Lane_0nibkyx" name="Patient">
+        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0icjc0u</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1tgrpvo</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_056f3hw" name="Staff">
+        <bpmn:flowNodeRef>Activity_16b3r2v</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_1eqnscb</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:task id="Activity_16b3r2v" name="Register Patient">
+      <bpmn:incoming>Flow_1brb3bz</bpmn:incoming>
+      <bpmn:outgoing>Flow_0rbudsv</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_1eqnscb">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="Input_3p0ugac">
+            <camunda:script scriptFormat="groovy" />
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+        <camunda:executionListener event="start">
+          <camunda:script scriptFormat="groovy">import java.time.*
+import java.time.format.DateTimeFormatter
+
+
+
+File f = new File('D:/DropboxData/Dropbox/School/MISE/Dissertation/Data/','Example.txt')
+f.append(execution.getVariable("AgentID")+','+execution.getVariable("StartTimestamp")+','+execution.getVariable("FillTimestamp")+','+execution.getVariable("StartArrive")+','+execution.getVariable("FillArrive")+','+ execution.getVariable("Language") +','+execution.getVariable("Preference")+'\n')</camunda:script>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0rbudsv</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0rbudsv" sourceRef="Activity_16b3r2v" targetRef="EndEvent_1eqnscb" />
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:extensionElements>
+        <camunda:formData businessKey="AgentID">
+          <camunda:formField id="Language" type="string" />
+          <camunda:formField id="Preference" type="string" />
+          <camunda:formField id="StartTimestamp" type="string" defaultValue="0" />
+          <camunda:formField id="AgentID" type="string" />
+          <camunda:formField id="FillTimestamp" type="string" />
+          <camunda:formField id="StartArrive" type="string" />
+          <camunda:formField id="FillArrive" type="string" />
+        </camunda:formData>
+        <camunda:executionListener event="start">
+          <camunda:script scriptFormat="groovy">import java.io.File
+import java.time.*
+import java.time.format.DateTimeFormatter
+
+
+LocalDateTime t = LocalDateTime.now();
+execution.setVariable("StartArrive",t);</camunda:script>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_146s402</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_146s402" sourceRef="StartEvent_1" targetRef="Activity_0icjc0u" />
+    <bpmn:receiveTask id="Activity_0icjc0u" name="Fill Form" camunda:asyncBefore="true" camunda:asyncAfter="true" messageRef="Message_0q7btz7">
+      <bpmn:incoming>Flow_146s402</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ic1360</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:sequenceFlow id="Flow_0ic1360" sourceRef="Activity_0icjc0u" targetRef="Activity_1tgrpvo" />
+    <bpmn:task id="Activity_1tgrpvo" name="Log FillArrive">
+      <bpmn:extensionElements>
+        <camunda:executionListener event="start">
+          <camunda:script scriptFormat="groovy">import java.io.File
+import java.time.*
+import java.time.format.DateTimeFormatter
+
+
+LocalDateTime t = LocalDateTime.now();
+execution.setVariable("FillArrive",t);</camunda:script>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0ic1360</bpmn:incoming>
+      <bpmn:outgoing>Flow_1brb3bz</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1brb3bz" sourceRef="Activity_1tgrpvo" targetRef="Activity_16b3r2v" />
+  </bpmn:process>
+  <bpmn:message id="Message_0hc91ej" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0b2u461">
+      <bpmndi:BPMNShape id="Participant_0uvsvo1_di" bpmnElement="Participant_0uvsvo1" isHorizontal="true">
+        <dc:Bounds x="129" y="60" width="1041" height="630" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_056f3hw_di" bpmnElement="Lane_056f3hw" isHorizontal="true">
+        <dc:Bounds x="159" y="360" width="1011" height="330" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0nibkyx_di" bpmnElement="Lane_0nibkyx" isHorizontal="true">
+        <dc:Bounds x="159" y="60" width="1011" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1brb3bz_di" bpmnElement="Flow_1brb3bz">
+        <di:waypoint x="650" y="280" />
+        <di:waypoint x="775" y="280" />
+        <di:waypoint x="775" y="450" />
+        <di:waypoint x="900" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ic1360_di" bpmnElement="Flow_0ic1360">
+        <di:waypoint x="450" y="280" />
+        <di:waypoint x="550" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_146s402_di" bpmnElement="Flow_146s402">
+        <di:waypoint x="248" y="280" />
+        <di:waypoint x="350" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0rbudsv_di" bpmnElement="Flow_0rbudsv">
+        <di:waypoint x="1000" y="450" />
+        <di:waypoint x="1082" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_16b3r2v_di" bpmnElement="Activity_16b3r2v">
+        <dc:Bounds x="900" y="410" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1eqnscb_di" bpmnElement="EndEvent_1eqnscb">
+        <dc:Bounds x="1082" y="432" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_06pidzi_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="212" y="262" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1v55a6u_di" bpmnElement="Activity_0icjc0u">
+        <dc:Bounds x="350" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1tgrpvo_di" bpmnElement="Activity_1tgrpvo">
+        <dc:Bounds x="550" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
