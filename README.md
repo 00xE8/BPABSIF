@@ -1,2 +1,2 @@
 # BPABSIF
-Business process &amp; Agent-based Interoperability Framework
+Sistemic Simulation Interoperability Framework
